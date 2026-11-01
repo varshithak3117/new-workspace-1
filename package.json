@@ -1,0 +1,26 @@
+{
+  "name": "smartslope-irrigation",
+  "version": "1.0.0",
+  "description": "SmartSlope - Smart Irrigation Management System for Sloping Arecanut Plantations",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "keywords": [
+    "agriculture",
+    "arecanut",
+    "irrigation",
+    "smart-farming",
+    "esp32",
+    "slope-management",
+    "kannada-voice",
+    "iot"
+  ],
+  "author": "SmartSlope Systems",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}

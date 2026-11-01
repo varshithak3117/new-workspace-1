@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartSlope – Smart Irrigation Management System for Sloping Arecanut Plantations</title>
+  <meta name="description" content="Modern, responsive multi-land smart irrigation platform designed for sloping arecanut orchards. Independent 3-zone slope monitoring, automatic runoff detection, and Kannada voice alerts.">
+
+  <!-- Fonts & Google Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Kannada:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Chart.js for Agriculture Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Application Styles -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="app-sidebar" id="app-sidebar">
+      <div class="brand-header">
+        <div class="brand-icon-box">🌴</div>
+        <div class="brand-text">
+          <h1>SmartSlope</h1>
+          <span class="brand-sub">ಸ್ಮಾರ್ಟ್‌ಸ್ಲೋಪ್ ನೀರಾವರಿ</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Navigation</div>
+        <ul class="nav-item-list">
+          <li>
+            <a href="#" class="nav-link active" data-view="home">
+              <span class="nav-icon">🏡</span>
+              <span>Home Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-view="lands">
+              <span class="nav-icon">🗺️</span>
+              <span>My Lands</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-view="land-detail">
+              <span class="nav-icon">⛰️</span>
+              <span>Land Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-view="zones">
+              <span class="nav-icon">📊</span>
+              <span>Zone Monitoring</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-view="irrigation">
+              <span class="nav-icon">💧</span>
+              <span>Irrigation Control</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="nav-section-title">Intelligence & Data</div>
+        <ul class="nav-item-list">
+          <li>
+            <a href="#" class="nav-link" data-view="weather">
+              <span class="nav-icon">⛅</span>
+              <span>Weather & Rain</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-view="analytics">
+              <span class="nav-icon">📈</span>
+              <span>Water Analytics</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-view="alerts">
+              <span class="nav-icon">🔔</span>
+              <span>Alerts & Safety</span>
+              <span class="badge-counter" id="nav-alert-badge" style="display:none;">0</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-view="hardware">
+              <span class="nav-icon">📡</span>
+              <span>Hardware & ESP32</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-view="settings">
+              <span class="nav-icon">⚙️</span>
+              <span>Settings</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status-pill">
+          <span class="status-dot"></span>
+          <span>ESP32 Safety Link: Active</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+      <!-- Top Navigation Bar -->
+      <header class="top-navbar">
+        <div class="top-left-controls">
+          <button class="mobile-toggle-btn" onclick="document.getElementById('app-sidebar').classList.toggle('mobile-open')">☰</button>
+          
+          <div class="land-switcher-box">
+            <span>🌾</span>
+            <select id="nav-land-selector" class="land-select-input" title="Switch Active Plantation Land">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+        </div>
+
+        <div class="top-right-controls">
+          <!-- Kannada / English Language Selector -->
+          <div class="lang-selector-group" title="Select Language">
+            <button class="lang-pill active" data-lang="kn" onclick="app.applyLanguage('kn')">ಕನ್ನಡ</button>
+            <button class="lang-pill" data-lang="en" onclick="app.applyLanguage('en')">English</button>
+          </div>
+
+          <!-- Audio Voice Alerts Indicator & Test -->
+          <button id="audio-indicator-btn" class="audio-control-btn" onclick="smartSlopeVoice.testAlert()" title="Test Kannada / English Speech Alert">
+            <span>🔊</span>
+            <span class="audio-btn-label">Voice Alert</span>
+          </button>
+
+          <!-- Add Land Quick Action -->
+          <button class="quick-add-btn" onclick="app.openAddLandModal()">
+            <span>➕</span>
+            <span>Add New Land</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Views Container -->
+      <div class="page-content">
+
+        <!-- 1. HOME DASHBOARD VIEW -->
+        <section id="view-home" class="page-view active">
+          <!-- Farmer Welcome Hero -->
+          <div class="welcome-hero-card">
+            <div class="welcome-info">
+              <h2>Namaskara, Shankara Gowda! (ನಮಸ್ಕಾರ, ಶಂಕರ ಗೌಡರೆ)</h2>
+              <p>Welcome to SmartSlope – Precision slope irrigation for your arecanut plantations. Water flows downhill; our system automatically controls Zone 1, 2, and 3 independently to prevent runoff erosion and conserve reservoir water.</p>
+            </div>
+            <div class="welcome-quick-actions">
+              <button class="btn btn-outline" style="color:white; border-color: rgba(255,255,255,0.4);" onclick="app.navigateTo('analytics')">
+                📊 View Water Savings
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Summary Counters (Section 2) -->
+          <div class="kpi-summary-grid">
+            <div class="kpi-card">
+              <div class="kpi-head">
+                <span>REGISTERED LANDS</span>
+                <span class="kpi-icon-badge">🗺️</span>
+              </div>
+              <div class="kpi-num" id="kpi-total-lands">3</div>
+              <div class="kpi-subtext">Each with 3 independent slope zones</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-head">
+                <span>ZONES NEEDING WATER</span>
+                <span class="kpi-icon-badge">💧</span>
+              </div>
+              <div class="kpi-num" id="kpi-zones-need-water">0</div>
+              <div class="kpi-subtext">Below configured dry threshold</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-head">
+                <span>TOTAL WATER USED TODAY</span>
+                <span class="kpi-icon-badge">🚿</span>
+              </div>
+              <div class="kpi-num" id="kpi-water-today">0 L</div>
+              <div class="kpi-subtext">~41% saved vs flood baseline</div>
+            </div>
+
+            <div class="kpi-card">
+              <div class="kpi-head">
+                <span>OVERALL IRRIGATION STATUS</span>
+                <span class="kpi-icon-badge">🛡️</span>
+              </div>
+              <div class="kpi-status-box" id="kpi-irrigation-status">
+                <span class="badge-status badge-normal">IDLE / SAFE</span>
+              </div>
+              <div class="kpi-subtext mt-1">Runoff safety interlock active</div>
+            </div>
+          </div>
+
+          <!-- Weather Box + Recent Alerts Split -->
+          <div class="dashboard-middle-grid">
+            <!-- Open-Meteo Weather Forecast Card -->
+            <div id="home-weather-widget">
+              <!-- Dynamically populated by weather.js -->
+            </div>
+
+            <!-- Recent Alerts & Safety Widget -->
+            <div class="recent-alerts-card">
+              <div class="recent-alerts-header">
+                <h4>🔔 Recent Alerts & Notifications</h4>
+                <button class="btn btn-sm btn-outline" onclick="app.navigateTo('alerts')">View All</button>
+              </div>
+              <div id="home-recent-alerts">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Smart Recommendations Section (Section 9) -->
+          <div class="section-header-row">
+            <div>
+              <h3>💡 Smart Recommendations for Sloping Orchards</h3>
+              <p class="section-subtitle">Rule-based agronomic intelligence balancing soil moisture, slope gravity, and rainfall</p>
+            </div>
+          </div>
+          <div class="recommendations-grid" id="home-recommendations-container">
+            <!-- Dynamically populated -->
+          </div>
+
+          <!-- Registered Lands Overview Grid (Section 2 & 3) -->
+          <div class="section-header-row mt-4">
+            <div>
+              <h3>🌾 Registered Arecanut Lands (Quick Overview)</h3>
+              <p class="section-subtitle">Real-time 3-zone slope summary, valve status, and water usage for each field</p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="app.openAddLandModal()">
+              ➕ Add New Land
+            </button>
+          </div>
+          <div class="lands-cards-grid" id="home-lands-grid">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <!-- 2. MY LANDS MANAGEMENT VIEW (Section 3) -->
+        <section id="view-lands" class="page-view">
+          <div id="my-lands-container">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <!-- 3. DETAILED LAND DASHBOARD & THREE-ZONE MONITORING (Section 4 & 5) -->
+        <section id="view-land-detail" class="page-view">
+          <div id="land-detail-container">
+            <!-- Dynamically populated with cross-section diagram and 3 zone cards -->
+          </div>
+        </section>
+
+        <!-- 4. ZONE MONITORING VIEW -->
+        <section id="view-zones" class="page-view">
+          <!-- Re-uses Land Detail View layout targeted on 3 slope zones -->
+          <div class="section-header-row mb-3">
+            <div>
+              <h2>📊 Three-Zone Slope Telemetry & Moisture Levels</h2>
+              <p class="section-subtitle">Independent capacitive soil moisture sensing across Upper, Middle, and Lower elevations</p>
+            </div>
+          </div>
+          <div id="zones-view-container"></div>
+        </section>
+
+        <!-- 5. IRRIGATION CONTROL VIEW -->
+        <section id="view-irrigation" class="page-view">
+          <div class="section-header-row mb-3">
+            <div>
+              <h2>💧 Automatic & Manual Irrigation Control</h2>
+              <p class="section-subtitle">Slope-aware valve actuation, dry thresholds, and safety runoff emergency pause</p>
+            </div>
+          </div>
+          <div id="irrigation-view-container"></div>
+        </section>
+
+        <!-- 6. WEATHER FORECAST VIEW (Section 7) -->
+        <section id="view-weather" class="page-view">
+          <div class="weather-page-wrapper">
+            <div class="section-header-row mb-3">
+              <div>
+                <h2>⛅ Agro-Weather Forecast (Open-Meteo Integration)</h2>
+                <p class="section-subtitle">Rainfall probabilities, precipitation estimates, and smart irrigation delay advisories</p>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="app.refreshWeather()">🔄 Refresh Forecast</button>
+            </div>
+            <div id="weather-full-widget">
+              <!-- Re-renders comprehensive weather widget -->
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. ANALYTICS & WATER USAGE VIEW (Section 8) -->
+        <section id="view-analytics" class="page-view">
+          <div id="analytics-page-container">
+            <!-- Dynamically populated with Chart.js -->
+          </div>
+        </section>
+
+        <!-- 8. ALERTS & NOTIFICATIONS VIEW (Section 11) -->
+        <section id="view-alerts" class="page-view">
+          <div id="alerts-page-container">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+        <!-- 9. HARDWARE & ESP32 VIEW (Section 14 & 15) -->
+        <section id="view-hardware" class="page-view">
+          <div id="hardware-page-container">
+            <!-- Dynamically populated with schematic, pinout, simulator -->
+          </div>
+        </section>
+
+        <!-- 10. SETTINGS VIEW (Section 12) -->
+        <section id="view-settings" class="page-view">
+          <div id="settings-page-container">
+            <!-- Dynamically populated -->
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: ADD NEW LAND (Section 2 & 3) -->
+  <div class="modal-overlay" id="modal-add-land">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>➕ Add New Plantation Land</h3>
+        <button class="modal-close-btn" onclick="app.closeAddLandModal()">&times;</button>
+      </div>
+      <form id="form-add-land">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Land / Plantation Name *</label>
+            <input type="text" id="add-land-name" class="form-control" placeholder="e.g. Tunga Valley Arecanut Estate" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Location (Taluk/District) *</label>
+              <input type="text" id="add-land-location" class="form-control" placeholder="e.g. Sringeri, Chikkamagaluru" required>
+            </div>
+            <div class="form-group">
+              <label>Area (Acres) *</label>
+              <input type="number" step="0.1" id="add-land-area" class="form-control" placeholder="1.5" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Slope Gradient Degree *</label>
+              <select id="add-land-slope" class="form-control">
+                <option value="Steep Slope (20°-30°)">Steep Slope (20°-30°)</option>
+                <option value="Moderate Slope (10°-20°)" selected>Moderate Slope (10°-20°)</option>
+                <option value="Gentle Slope (5°-10°)">Gentle Slope (5°-10°)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Crop / Variety *</label>
+              <input type="text" id="add-land-crop" class="form-control" value="Arecanut (Mangala Variety)" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Latitude (Open-Meteo Weather)</label>
+              <input type="number" step="0.0001" id="add-land-lat" class="form-control" value="13.4216">
+            </div>
+            <div class="form-group">
+              <label>Longitude (Open-Meteo Weather)</label>
+              <input type="number" step="0.0001" id="add-land-lon" class="form-control" value="75.2562">
+            </div>
+          </div>
+
+          <div class="alert-info-box mt-2" style="background:#e8f5e9; padding:10px; border-radius:6px; font-size:12px; color:#1b5e20;">
+            🌿 <strong>Notice:</strong> Adding this land will automatically generate 3 independent slope zones: Zone 1 (Upper), Zone 2 (Middle), and Zone 3 (Lower) with individual valve telemetry.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="app.closeAddLandModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Create Land & Initialize 3 Zones</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT LAND -->
+  <div class="modal-overlay" id="modal-edit-land">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>✏️ Edit Land Details</h3>
+        <button class="modal-close-btn" onclick="app.closeEditLandModal()">&times;</button>
+      </div>
+      <form id="form-edit-land">
+        <input type="hidden" id="edit-land-id">
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Land Name</label>
+            <input type="text" id="edit-land-name" class="form-control" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Location</label>
+              <input type="text" id="edit-land-location" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label>Area (Acres)</label>
+              <input type="number" step="0.1" id="edit-land-area" class="form-control" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Slope Gradient</label>
+              <select id="edit-land-slope" class="form-control">
+                <option value="Steep Slope (20°-30°)">Steep Slope (20°-30°)</option>
+                <option value="Moderate Slope (10°-20°)">Moderate Slope (10°-20°)</option>
+                <option value="Gentle Slope (5°-10°)">Gentle Slope (5°-10°)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Crop / Variety</label>
+              <input type="text" id="edit-land-crop" class="form-control" required>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="app.closeEditLandModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Application Logic Modules -->
+  <script src="js/config.js"></script>
+  <script src="js/voice.js"></script>
+  <script src="js/weather.js"></script>
+  <script src="js/irrigation.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/simulator.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
